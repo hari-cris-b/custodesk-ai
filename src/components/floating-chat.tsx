@@ -50,12 +50,6 @@ export default function FloatingChat() {
     };
   }, [hasInteracted, isOpen]);
 
-  const handleChatOpen = () => {
-    setIsOpen(true);
-    setShowNotification(false);
-    setHasInteracted(true);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!input.trim() || isLoading) return
@@ -119,6 +113,23 @@ export default function FloatingChat() {
             </div>
           </motion.div>
         )}
+
+        {/* Chat Button */}
+        <Button
+          onClick={() => {
+            setIsOpen(!isOpen);
+            if (!isOpen) {
+              setHasInteracted(true);
+              setShowNotification(false);
+            }
+          }}
+          size="icon"
+          className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white shadow-lg"
+        >
+          {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
+        </Button>
+
+        {/* Chat Window */}
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -137,14 +148,6 @@ export default function FloatingChat() {
                 />
                 <span className="font-semibold">CustoDesk Assistant</span>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsOpen(false)}
-                className="hover:bg-zinc-800"
-              >
-                <X className="w-4 h-4" />
-              </Button>
             </div>
             <div className="h-[400px] overflow-y-auto p-4 space-y-4" id="chat-messages">
               {messages.length === 0 && (
@@ -223,28 +226,6 @@ export default function FloatingChat() {
           </motion.div>
         )}
       </AnimatePresence>
-      <motion.button
-        onClick={handleChatOpen}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="bg-gradient-to-r from-violet-600 to-purple-600 rounded-full p-4 shadow-lg flex items-center justify-center relative group"
-      >
-        <Image
-          src="/images/logo.png"
-          alt="CustoDesk AI"
-          width={32}
-          height={32}
-          className="rounded-lg"
-        />
-        <MessageCircle className="w-4 h-4 text-white absolute bottom-1 right-1" />
-        {!isOpen && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"
-          />
-        )}
-      </motion.button>
     </div>
   )
 }

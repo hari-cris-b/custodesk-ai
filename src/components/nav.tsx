@@ -5,6 +5,7 @@ import { Button } from './ui/button'
 import { Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { OptimizedImage } from './ui/optimized-image'
+import { ThemeToggle } from './theme-toggle'
 
 export default function Nav() {
   const [isOpen, setIsOpen] = useState(false)
@@ -68,8 +69,10 @@ export default function Nav() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
-      className={`fixed top-0 z-50 w-full border-b border-zinc-800 backdrop-blur-xl transition-all duration-300 ${
-        isScrolled ? 'bg-black/50 border-purple-600/20' : 'bg-transparent border-transparent'
+      className={`fixed top-0 z-50 w-full border-b backdrop-blur-xl transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white/80 dark:bg-zinc-950/80 border-zinc-200/50 dark:border-zinc-800/50' 
+          : 'bg-transparent border-transparent'
       }`}
     >
       <nav className="container mx-auto px-6 py-4">
@@ -89,7 +92,7 @@ export default function Nav() {
               className="rounded-lg"
             />
             <motion.span 
-              className="font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-violet-600"
+              className="font-bold gradient-text"
               animate={{ 
                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
               }}
@@ -110,16 +113,16 @@ export default function Nav() {
               href="#features" 
               onClick={(e) => scrollToSection(e, 'features')}
               className={`text-sm transition-all duration-300 relative group ${
-                activeSection === 'features' ? 'text-white' : 'text-zinc-400'
+                activeSection === 'features' 
+                  ? 'text-zinc-950 dark:text-white' 
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
               }`}
               whileHover={{ y: -2 }}
               whileTap={{ y: 0 }}
             >
               Features
               <motion.span 
-                className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-purple-600 to-violet-600 ${
-                  activeSection === 'features' ? 'w-full' : 'w-0'
-                }`}
+                className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-purple-600 to-violet-600"
                 initial={false}
                 animate={{ width: activeSection === 'features' ? "100%" : "0%" }}
                 transition={{ duration: 0.3 }}
@@ -129,16 +132,16 @@ export default function Nav() {
               href="#process" 
               onClick={(e) => scrollToSection(e, 'process')}
               className={`text-sm transition-all duration-300 relative group ${
-                activeSection === 'process' ? 'text-white' : 'text-zinc-400'
+                activeSection === 'process' 
+                  ? 'text-zinc-950 dark:text-white' 
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
               }`}
               whileHover={{ y: -2 }}
               whileTap={{ y: 0 }}
             >
               Process
               <motion.span 
-                className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-purple-600 to-violet-600 ${
-                  activeSection === 'process' ? 'w-full' : 'w-0'
-                }`}
+                className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-purple-600 to-violet-600"
                 initial={false}
                 animate={{ width: activeSection === 'process' ? "100%" : "0%" }}
                 transition={{ duration: 0.3 }}
@@ -148,21 +151,22 @@ export default function Nav() {
               href="#demo" 
               onClick={(e) => scrollToSection(e, 'demo')}
               className={`text-sm transition-all duration-300 relative group ${
-                activeSection === 'demo' ? 'text-white' : 'text-zinc-400'
+                activeSection === 'demo' 
+                  ? 'text-zinc-950 dark:text-white' 
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
               }`}
               whileHover={{ y: -2 }}
               whileTap={{ y: 0 }}
             >
               Demo
               <motion.span 
-                className={`absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-purple-600 to-violet-600 ${
-                  activeSection === 'demo' ? 'w-full' : 'w-0'
-                }`}
+                className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-purple-600 to-violet-600"
                 initial={false}
                 animate={{ width: activeSection === 'demo' ? "100%" : "0%" }}
                 transition={{ duration: 0.3 }}
               />
             </motion.a>
+            <ThemeToggle />
             <Button
               onClick={openCalendly}
               className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700"
@@ -195,7 +199,7 @@ export default function Nav() {
               <div className="flex flex-col space-y-4 pt-4 pb-8">
                 <a
                   href="#features"
-                  className="text-zinc-400 hover:text-purple-400"
+                  className="text-zinc-400 dark:text-zinc-600 hover:text-purple-400 dark:hover:text-purple-600"
                   onClick={() => {
                     setIsOpen(false)
                     const section = document.getElementById('features')
@@ -216,7 +220,7 @@ export default function Nav() {
                 </a>
                 <a
                   href="#process"
-                  className="text-zinc-400 hover:text-purple-400"
+                  className="text-zinc-400 dark:text-zinc-600 hover:text-purple-400 dark:hover:text-purple-600"
                   onClick={() => {
                     setIsOpen(false)
                     const section = document.getElementById('process')
@@ -237,7 +241,7 @@ export default function Nav() {
                 </a>
                 <a
                   href="#demo"
-                  className="text-zinc-400 hover:text-purple-400"
+                  className="text-zinc-400 dark:text-zinc-600 hover:text-purple-400 dark:hover:text-purple-600"
                   onClick={() => {
                     setIsOpen(false)
                     const section = document.getElementById('demo')

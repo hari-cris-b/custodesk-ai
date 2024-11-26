@@ -3,12 +3,34 @@
 import { Button } from "@/components/ui/button"
 import { MessageCircle } from "lucide-react"
 import { motion } from "framer-motion"
+import { useState, useEffect } from 'react';
 
 export default function Hero() {
   const openCalendly = () => {
     const url = "https://calendly.com/haricrisbfreelancer/custodesk-ai-consultation-call";
     window.open(url, '_blank');
   };
+
+  const services = [
+    "customer support",
+    "data analysis",
+    "content writing",
+    "market research",
+    "email automation",
+    "social media",
+    "lead generation",
+    "sales assistance"
+  ];
+
+  const [serviceIndex, setServiceIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setServiceIndex((prev) => (prev + 1) % services.length);
+    }, 2000); // Change every 2 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   const container = {
     hidden: { opacity: 0 },
@@ -52,24 +74,27 @@ export default function Hero() {
       >
         <motion.h1
           variants={item}
-          className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight"
+          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight"
         >
-          AI Precision
-          <br />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-violet-600 to-purple-600 animate-gradient">
-            Customer Support
-          </span>
-          <br />
-          with CustoDesk AI
+          Transform your{' '}<br/>
+          <motion.span
+            key={serviceIndex}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-violet-600 to-purple-600 animate-gradient"
+          >
+            {services[serviceIndex]}
+          </motion.span>
+          {' '}<br/>with CustoDesk AI
         </motion.h1>
 
         <motion.p
           variants={item}
           className="mt-8 text-lg sm:text-xl text-zinc-400 max-w-3xl mx-auto"
         >
-          Experience the future of customer service with our AI-powered platform.
-          Deliver instant, accurate responses and exceptional support
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-violet-600"> 24/7.</span>
+          Supercharge your customer support, streamline your lead generation, and automate workflows seamlessly.
+          Book a call today to explore a tailor-made strategy that fits your needs perfectly.
         </motion.p>
 
         <motion.div
@@ -82,7 +107,7 @@ export default function Hero() {
             className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 hover:scale-105 group text-lg transition-all"
           >
             <MessageCircle className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-            Start Free Trial
+            Let's Talk
           </Button>
         </motion.div>
 
