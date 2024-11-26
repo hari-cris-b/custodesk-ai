@@ -13,11 +13,8 @@ export async function POST(req: Request) {
     
     const response = await getGeminiResponse(message)
     
-    return new NextResponse(response, {
-      headers: {
-        'Content-Type': 'text/plain',
-        'Cache-Control': 'no-cache, no-transform',
-      },
+    return NextResponse.json({ 
+      message: response 
     })
   } catch (error) {
     console.error('API Error:', error)

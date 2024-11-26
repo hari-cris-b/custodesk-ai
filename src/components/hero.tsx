@@ -93,10 +93,14 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-violet-600 to-purple-600 animate-gradient inline-flex items-center gap-3"
+            className="inline-flex items-center gap-3"
           >
-            <ServiceIcon className="w-12 h-12 inline-block" />
-            {services[serviceIndex].text}
+            <span className="flex text-violet-500">
+              <ServiceIcon className="w-12 h-12" strokeWidth={1.5} />
+            </span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-violet-600 to-purple-600 animate-gradient">
+              {services[serviceIndex].text}
+            </span>
           </motion.span>
           {' '}<br/>with CustoDesk AI
         </motion.h1>

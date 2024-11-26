@@ -1,15 +1,34 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useTheme } from 'next-themes'
 import { Button } from './ui/button'
 import { MessageCircle, Send, X } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
+import { knowledgeBase } from '@/lib/knowledge-base'
+import { clsx } from 'clsx'
+
+const INITIAL_MESSAGE = `👋 Hi! I'm the CustoDesk AI assistant. I can help you with:
+
+${Object.values(knowledgeBase.services)
+  .map(service => `• ${service.title}`)
+  .join('\n')}
+
+I can provide details about our services or help you schedule a free consultation call to discuss your specific needs.
+
+How can I assist you today?`
+
+const CONSULTATION_MESSAGE = `Would you like to schedule a free 30-minute consultation call?
+
+[Click here to schedule your consultation](${knowledgeBase.company.consultation.link})`
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
+  error?: boolean
+  id: string
 }
 
 export default function FloatingChat() {
@@ -19,6 +38,37 @@ export default function FloatingChat() {
   const [isLoading, setIsLoading] = useState(false)
   const [showNotification, setShowNotification] = useState(false)
   const [hasInteracted, setHasInteracted] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Function to simulate typing and add messages with delay
+  const addMessageWithDelay = async (message: Message, delay: number) => {
+    setIsTyping(true)
+    await new Promise(resolve => setTimeout(resolve, delay))
+    setMessages(prev => [...prev, message])
+    setIsTyping(false)
+  }
+
+  // Initialize welcome messages when chat opens
+  useEffect(() => {
+    if (isOpen && messages.length === 0) {
+      const welcomeMessage: Message = {
+        role: 'assistant' as const,
+        content: "👋 Hi! I'm your friendly AI assistant",
+        id: `welcome-${Date.now()}`
+      }
+      const consultationMessage: Message = {
+        role: 'assistant' as const,
+        content: `Would you like to schedule a free 30-minute consultation call?\n\n[Click here to schedule your consultation](${knowledgeBase.company.consultation.link})`,
+        id: `consultation-${Date.now()}`
+      }
+
+      // Add messages with typing animation
+      addMessageWithDelay(welcomeMessage, 500).then(() => {
+        addMessageWithDelay(consultationMessage, 1000)
+      })
+    }
+  }, [isOpen])
 
   useEffect(() => {
     let scrollTimeout: NodeJS.Timeout;
@@ -52,41 +102,54 @@ export default function FloatingChat() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isLoading) return
+    if (!input.trim()) return
 
-    const userMessage: Message = { role: 'user', content: input }
-    setMessages(prev => [...prev, userMessage])
+    const userMessage = input.trim()
     setInput('')
+    setMessages(prev => [...prev, { 
+      role: 'user', 
+      content: userMessage,
+      id: `user-${Date.now()}`
+    }])
+
+    // Check if message is about booking/scheduling
+    if (userMessage.toLowerCase().includes('book') || 
+        userMessage.toLowerCase().includes('schedule') || 
+        userMessage.toLowerCase().includes('consultation') ||
+        userMessage.toLowerCase().includes('call')) {
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: CONSULTATION_MESSAGE,
+        id: `assistant-${Date.now()}`
+      }])
+      return
+    }
+
     setIsLoading(true)
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message: userMessage })
       })
 
-      if (!response.ok) throw new Error('Failed to get response')
-
-      const responseText = await response.text()
-      const assistantMessage: Message = { 
-        role: 'assistant', 
-        content: responseText 
-      }
+      if (!response.ok) throw new Error('Network response was not ok')
       
-      // Animate the response appearing word by word
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: responseText
+      const data = await response.json()
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.message,
+        id: `assistant-${Date.now()}`
       }])
-
     } catch (error) {
       console.error('Error:', error)
-      const errorMessage: Message = { 
+      setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Sorry, I encountered an error. Please try again.' 
-      }
-      setMessages(prev => [...prev, errorMessage])
+        content: "I apologize, but I'm having trouble connecting right now. Please try again in a moment or schedule a consultation call.",
+        error: true,
+        id: `error-${Date.now()}`
+      }])
     } finally {
       setIsLoading(false)
     }
@@ -150,39 +213,59 @@ export default function FloatingChat() {
               </div>
             </div>
             <div className="h-[400px] overflow-y-auto p-4 space-y-4" id="chat-messages">
-              {messages.length === 0 && (
+              {messages.length === 0 && !isTyping && (
                 <div className="text-center text-zinc-500 mt-8">
-                  👋 Hi! I'm the CustoDesk AI assistant. How can I help you today?
+                  <ReactMarkdown>{INITIAL_MESSAGE}</ReactMarkdown>
                 </div>
               )}
               <AnimatePresence initial={false}>
-                {messages.map((message, index) => (
+                {messages.map((message) => (
                   <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
+                    key={message.id}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    exit={{ opacity: 0, y: -10 }}
+                    className={clsx(
+                      "flex items-start gap-2 rounded-lg p-4",
+                      message.role === 'assistant'
+                        ? message.error
+                          ? "bg-violet-500 dark:bg-violet-600 text-white"
+                          : "bg-violet-500 dark:bg-violet-600 text-white shadow-sm"
+                        : "bg-violet-500 dark:bg-violet-600 text-white shadow-sm"
+                    )}
                   >
-                    <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
-                        message.role === 'user'
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-zinc-800 text-zinc-100'
-                      }`}
-                    >
+                    {message.role === 'assistant' ? (
+                      <div className="relative">
+                        <Image
+                          src="/images/logo.png"
+                          alt="CustoDesk AI"
+                          width={28}
+                          height={28}
+                          className={clsx(
+                            "rounded-full ring-2 ring-white/50"
+                          )}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center shadow-sm">
+                        <span className="text-xs text-white font-medium">You</span>
+                      </div>
+                    )}
+                    <div className="flex-1 overflow-hidden">
                       <ReactMarkdown 
-                        className="prose prose-invert prose-sm"
+                        className="prose max-w-none space-y-2 prose-white"
                         components={{
                           a: ({ node, ...props }) => (
-                            <a {...props} className="text-purple-400 hover:text-purple-300" target="_blank" rel="noopener noreferrer" />
+                            <a
+                              {...props}
+                              className="underline transition-colors duration-200 text-white/90 hover:text-white"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            />
                           ),
-                          ul: ({ node, ...props }) => (
-                            <ul {...props} className="list-disc list-inside" />
-                          ),
-                          ol: ({ node, ...props }) => (
-                            <ol {...props} className="list-decimal list-inside" />
-                          ),
+                          p: ({ node, ...props }) => (
+                            <p {...props} className="leading-relaxed text-white" />
+                          )
                         }}
                       >
                         {message.content}
@@ -190,16 +273,26 @@ export default function FloatingChat() {
                     </div>
                   </motion.div>
                 ))}
-                {isLoading && (
+                {isTyping && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="flex justify-start"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-start gap-2 rounded-lg p-4 bg-violet-500 dark:bg-violet-600 text-white shadow-sm"
                   >
-                    <div className="bg-zinc-800 rounded-lg p-3 flex space-x-2">
-                      <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" />
-                      <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce delay-100" />
-                      <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce delay-200" />
+                    <div className="relative">
+                      <Image
+                        src="/images/logo.png"
+                        alt="CustoDesk AI"
+                        width={28}
+                        height={28}
+                        className="rounded-full ring-2 ring-white/50"
+                      />
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      <span className="w-2 h-2 bg-white/80 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                      <span className="w-2 h-2 bg-white/80 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                      <span className="w-2 h-2 bg-white/80 rounded-full animate-bounce" />
                     </div>
                   </motion.div>
                 )}
