@@ -41,6 +41,14 @@ export default function FloatingChat() {
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+
   // Function to simulate typing and add messages with delay
   const addMessageWithDelay = async (message: Message, delay: number) => {
     setIsTyping(true)
@@ -71,34 +79,24 @@ export default function FloatingChat() {
   }, [isOpen])
 
   useEffect(() => {
-    let scrollTimeout: NodeJS.Timeout;
-    let lastScrollY = window.scrollY;
-
     const handleScroll = () => {
-      if (hasInteracted || isOpen) return;
-      
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const scrollPosition = window.scrollY;
-      const halfwayPoint = (documentHeight - windowHeight) / 2;
+      if (!hasInteracted && !showNotification) {
+        const scrollPosition = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        const halfwayPoint = (documentHeight - windowHeight) / 2;
 
-      // Only show notification when scrolled past halfway and scrolling down
-      if (scrollPosition > halfwayPoint && window.scrollY > lastScrollY) {
-        clearTimeout(scrollTimeout);
-        setShowNotification(true);
-        scrollTimeout = setTimeout(() => {
-          setShowNotification(false);
-        }, 5000); // Hide after 5 seconds
+        if (scrollPosition > halfwayPoint) {
+          setShowNotification(true);
+          // Remove scroll listener after showing notification
+          window.removeEventListener('scroll', handleScroll);
+        }
       }
-      lastScrollY = window.scrollY;
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimeout);
-    };
-  }, [hasInteracted, isOpen]);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasInteracted, showNotification]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -156,28 +154,32 @@ export default function FloatingChat() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <AnimatePresence>
+    <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-4">
+      <div className="relative">
         {showNotification && !isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className="absolute bottom-20 right-0 bg-violet-600 text-white px-4 py-2 rounded-lg shadow-lg"
+            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="absolute bottom-full right-0 mb-4 bg-violet-600 text-white px-4 py-3 rounded-lg shadow-lg w-64"
           >
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">Need help? Chat with our AI assistant!</span>
+            <div className="flex items-start justify-between space-x-2">
+              <div className="flex-1">
+                <p className="text-sm font-medium">Need help with anything?</p>
+                <p className="text-xs text-white/80 mt-1">Chat with our AI assistant!</p>
+              </div>
               <button
                 onClick={() => setShowNotification(false)}
-                className="text-white/80 hover:text-white"
+                className="text-white/80 hover:text-white mt-1"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
+            <div className="absolute bottom-0 right-4 transform translate-y-1/2 rotate-45 w-2 h-2 bg-violet-600"></div>
           </motion.div>
         )}
-
-        {/* Chat Button */}
+        
         <Button
           onClick={() => {
             setIsOpen(!isOpen);
@@ -187,17 +189,25 @@ export default function FloatingChat() {
             }
           }}
           size="icon"
-          className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white shadow-lg"
+          className="bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-700 hover:to-violet-700 text-white shadow-lg relative"
         >
           {isOpen ? <X className="w-5 h-5" /> : <MessageCircle className="w-5 h-5" />}
         </Button>
+      </div>
 
-        {/* Chat Window */}
+      {/* Chat Window */}
+      <AnimatePresence>
         {isOpen && (
           <motion.div
+            key="chat-window"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 300,
+              damping: 30
+            }}
             className="absolute bottom-16 right-0 w-96 bg-zinc-900 rounded-lg shadow-lg overflow-hidden"
           >
             <div className="p-4 border-b border-zinc-800 flex justify-between items-center">
@@ -212,26 +222,38 @@ export default function FloatingChat() {
                 <span className="font-semibold">CustoDesk Assistant</span>
               </div>
             </div>
-            <div className="h-[400px] overflow-y-auto p-4 space-y-4" id="chat-messages">
-              {messages.length === 0 && !isTyping && (
-                <div className="text-center text-zinc-500 mt-8">
-                  <ReactMarkdown>{INITIAL_MESSAGE}</ReactMarkdown>
-                </div>
-              )}
-              <AnimatePresence initial={false}>
+            
+            <div className="h-[400px] overflow-y-auto p-4" id="chat-messages">
+              <div className="space-y-4">
+                {messages.length === 0 && !isTyping && (
+                  <motion.div
+                    key="empty-state"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="text-center text-zinc-500 mt-8"
+                  >
+                    <ReactMarkdown>{INITIAL_MESSAGE}</ReactMarkdown>
+                  </motion.div>
+                )}
+                
                 {messages.map((message) => (
                   <motion.div
                     key={message.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 30
+                    }}
                     className={clsx(
-                      "flex items-start gap-2 rounded-lg p-4",
+                      "flex items-start space-x-3 p-3 rounded-lg",
                       message.role === 'assistant'
                         ? message.error
                           ? "bg-violet-500 dark:bg-violet-600 text-white"
                           : "bg-violet-500 dark:bg-violet-600 text-white shadow-sm"
-                        : "bg-violet-500 dark:bg-violet-600 text-white shadow-sm"
+                        : "bg-blue-500 dark:bg-blue-600 text-white shadow-sm"
                     )}
                   >
                     {message.role === 'assistant' ? (
@@ -241,9 +263,7 @@ export default function FloatingChat() {
                           alt="CustoDesk AI"
                           width={28}
                           height={28}
-                          className={clsx(
-                            "rounded-full ring-2 ring-white/50"
-                          )}
+                          className="rounded-full ring-2 ring-white/50"
                         />
                       </div>
                     ) : (
@@ -273,12 +293,18 @@ export default function FloatingChat() {
                     </div>
                   </motion.div>
                 ))}
+                
                 {isTyping && (
                   <motion.div
+                    key="typing-indicator"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="flex items-start gap-2 rounded-lg p-4 bg-violet-500 dark:bg-violet-600 text-white shadow-sm"
+                    transition={{ 
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 30
+                    }}
+                    className="flex items-start space-x-3 p-3 rounded-lg bg-violet-500 dark:bg-violet-600 text-white shadow-sm"
                   >
                     <div className="relative">
                       <Image
@@ -296,8 +322,10 @@ export default function FloatingChat() {
                     </div>
                   </motion.div>
                 )}
-              </AnimatePresence>
+                <div ref={messagesEndRef} />
+              </div>
             </div>
+
             <form onSubmit={handleSubmit} className="p-4 border-t border-zinc-800">
               <div className="flex space-x-2">
                 <input
