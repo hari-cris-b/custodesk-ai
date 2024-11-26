@@ -1,7 +1,16 @@
 'use client'
 
 import { Button } from "@/components/ui/button"
-import { MessageCircle } from "lucide-react"
+import { 
+  MessageCircle, 
+  BarChart2, 
+  FileText, 
+  Search, 
+  Mail, 
+  Share2, 
+  Users, 
+  LineChart 
+} from "lucide-react"
 import { motion } from "framer-motion"
 import { useState, useEffect } from 'react';
 
@@ -12,14 +21,14 @@ export default function Hero() {
   };
 
   const services = [
-    "customer support",
-    "data analysis",
-    "content writing",
-    "market research",
-    "email automation",
-    "social media",
-    "lead generation",
-    "sales assistance"
+    { text: "customer support", icon: MessageCircle },
+    { text: "data analysis", icon: BarChart2 },
+    { text: "content writing", icon: FileText },
+    { text: "market research", icon: Search },
+    { text: "email automation", icon: Mail },
+    { text: "social media", icon: Share2 },
+    { text: "lead generation", icon: Users },
+    { text: "sales assistance", icon: LineChart }
   ];
 
   const [serviceIndex, setServiceIndex] = useState(0);
@@ -31,6 +40,8 @@ export default function Hero() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const ServiceIcon = services[serviceIndex].icon;
 
   const container = {
     hidden: { opacity: 0 },
@@ -82,9 +93,10 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-violet-600 to-purple-600 animate-gradient"
+            className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-violet-600 to-purple-600 animate-gradient inline-flex items-center gap-3"
           >
-            {services[serviceIndex]}
+            <ServiceIcon className="w-12 h-12 inline-block" />
+            {services[serviceIndex].text}
           </motion.span>
           {' '}<br/>with CustoDesk AI
         </motion.h1>

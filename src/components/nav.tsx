@@ -2,15 +2,47 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from './ui/button'
-import { Menu, X } from 'lucide-react'
+import { 
+  MessageCircle, 
+  Menu, 
+  X,
+  BarChart2, 
+  FileText, 
+  Search, 
+  Mail, 
+  Share2, 
+  Users, 
+  LineChart 
+} from "lucide-react"
 import { motion, AnimatePresence } from 'framer-motion'
 import { OptimizedImage } from './ui/optimized-image'
 import { ThemeToggle } from './theme-toggle'
+import React from 'react'
+
+const services = [
+  { icon: MessageCircle, color: "text-purple-500" },
+  { icon: BarChart2, color: "text-violet-500" },
+  { icon: FileText, color: "text-purple-500" },
+  { icon: Search, color: "text-violet-500" },
+  { icon: Mail, color: "text-purple-500" },
+  { icon: Share2, color: "text-violet-500" },
+  { icon: Users, color: "text-purple-500" },
+  { icon: LineChart, color: "text-violet-500" }
+];
 
 export default function Nav() {
-  const [isOpen, setIsOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
+  const [serviceIndex, setServiceIndex] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setServiceIndex((prev) => (prev + 1) % services.length);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleScroll = useCallback(() => {
     const scrolled = window.scrollY > 50
@@ -83,14 +115,27 @@ export default function Nav() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            <OptimizedImage
-              src="/images/logo.png"
-              alt="CustoDesk AI"
-              width={32}
-              height={32}
-              priority
-              className="rounded-lg"
-            />
+            <div className="relative">
+              <OptimizedImage
+                src="/images/logo.png"
+                alt="CustoDesk AI"
+                width={32}
+                height={32}
+                priority
+                className="rounded-lg"
+              />
+              <motion.div
+                key={serviceIndex}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="absolute -bottom-1 -right-1 bg-white dark:bg-zinc-900 rounded-full p-0.5 shadow-lg"
+              >
+                {React.createElement(services[serviceIndex].icon, {
+                  className: `w-3 h-3 ${services[serviceIndex].color}`
+                })}
+              </motion.div>
+            </div>
             <motion.span 
               className="font-bold gradient-text"
               animate={{ 

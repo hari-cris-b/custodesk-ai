@@ -11,10 +11,9 @@ import { cn } from "@/lib/utils"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "CustoDesk AI - Next Generation Customer Service",
-  description:
-    "Transform your customer service with AI. CustoDesk AI provides intelligent automation, real-time insights, and seamless integration.",
-  metadataBase: new URL("https://custodesk.ai"),
+  title: "CustoDesk AI - Transform Your Customer Support",
+  description: "Transform your customer support with AI-powered solutions. CustoDesk AI provides intelligent automation, instant responses, and 24/7 customer service.",
+  metadataBase: new URL("https://custodesk-ai.vercel.app"),
   keywords: [
     "AI customer service",
     "customer support automation",
@@ -25,14 +24,14 @@ export const metadata: Metadata = {
   authors: [
     {
       name: "CustoDesk AI",
-      url: "https://custodesk.ai",
+      url: "https://custodesk-ai.vercel.app",
     },
   ],
   creator: "CustoDesk AI",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://custodesk.ai",
+    url: "https://custodesk-ai.vercel.app",
     title: "CustoDesk AI - Next Generation Customer Service",
     description:
       "Transform your customer service with AI. CustoDesk AI provides intelligent automation, real-time insights, and seamless integration.",
@@ -44,6 +43,16 @@ export const metadata: Metadata = {
     description:
       "Transform your customer service with AI. CustoDesk AI provides intelligent automation, real-time insights, and seamless integration.",
     creator: "@custodesk",
+  },
+  icons: {
+    icon: [
+      {
+        url: '/images/logo.png',
+        href: '/images/logo.png',
+      }
+    ],
+    shortcut: ['/images/logo.png'],
+    apple: ['/images/logo.png'],
   },
 }
 
@@ -64,7 +73,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <head>
+        <link rel="icon" type="image/png" href="/images/logo.png" />
+        <link rel="apple-touch-icon" href="/images/logo.png" />
+      </head>
       <body className={cn(
         inter.className,
         "min-h-screen antialiased",
